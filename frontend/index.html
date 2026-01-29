@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gesture to Speech</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Gesture to Speech</h1>
+
+  <!-- Start camera -->
+  <button onclick="startCamera()">Start Camera</button>
+
+  <!-- Capture gesture -->
+  <button onclick="capture()">Capture Gesture</button>
+
+  <br><br>
+
+  <!-- Camera preview -->
+  <video id="video" width="400" height="300" autoplay></video>
+
+  <br><br>
+
+  <!-- Result text -->
+  <p id="result">Detected Text will appear here</p>
+
+  <script src="script.js"></script>
+</body>
+</html>

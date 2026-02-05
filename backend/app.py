@@ -22,12 +22,13 @@ last_spoken = ""
 # Gesture smoothing variables
 last_known_gesture = None
 last_seen_time = time.time()
-WAIT_SECONDS = 3   # wait before declaring unknown
+WAIT_SECONDS = 0   # instant response
 
 def speak(text):
-    global last_spoken
+    global last_spoken, last_seen_time
 
-    if text == last_spoken:
+    # Prevent audio spam but allow repeat after 1 second
+    if text == last_spoken and time.time() - last_seen_time < 1:
         return
 
     def run_speech():
@@ -40,7 +41,9 @@ def speak(text):
                 pass
 
     threading.Thread(target=run_speech).start()
+
     last_spoken = text
+    last_seen_time = time.time()
 
 
 @app.route("/predict", methods=["POST"])
@@ -56,15 +59,13 @@ def predict():
     # MODEL PREDICTION
     gesture_name = str(predict_gesture(image_bytes)).strip()
 
-
-    # SMOOTHING LOGIC
+    # SMOOTHING LOGIC (instant)
     current_time = time.time()
 
     if gesture_name != "Unknown":
         last_known_gesture = gesture_name
         last_seen_time = current_time
     else:
-        # If still within wait time, reuse last known gesture
         if last_known_gesture and (current_time - last_seen_time < WAIT_SECONDS):
             gesture_name = last_known_gesture
 
@@ -86,7 +87,10 @@ def predict():
     # TEXT TO SPEECH
     speak(text)
 
-    return jsonify({"text": text})
+    return jsonify({
+        "gesture": gesture_name,
+        "text": text
+    })
 
 
 if __name__ == "__main__":

@@ -1,18 +1,5 @@
-db = SessionLocal()
-try:
-    gestures = [
-        Gesture(name="fist", output_text="Hello"),
-        Gesture(name="palm", output_text="Yes"),
-        Gesture(name="thumbs_up", output_text="Good")
-    ]
+from database import Base, engine
 
-    for g in gestures:
-        if not db.query(Gesture).filter_by(name=g.name).first():
-            db.add(g)
+Base.metadata.create_all(bind=engine)
 
-    db.commit()
-    print("Database initialized")
-
-finally:
-    db.close()
-
+print("Database tables created successfully")

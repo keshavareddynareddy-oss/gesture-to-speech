@@ -1,10 +1,25 @@
+import os
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 
 Base = declarative_base()
-engine = create_engine("sqlite:///gestures.db", echo=True)  # SQLite DB file in backend folder
-SessionLocal = sessionmaker(bind=engine)
+
+# 🔒 ABSOLUTE path to backend/gestures.db
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "gestures.db")
+
+engine = create_engine(
+    f"sqlite:///{DB_PATH}",
+    echo=True,
+    connect_args={"check_same_thread": False}
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
 class Gesture(Base):
     __tablename__ = "gestures"
@@ -19,5 +34,5 @@ class History(Base):
     text = Column(String)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-# Creates all tables if they don't exist
+# Create tables in the CORRECT database
 Base.metadata.create_all(bind=engine)

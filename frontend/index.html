@@ -8,22 +8,22 @@
 
   <h1>Gesture to Speech</h1>
 
-  <!-- Start camera -->
+  <!-- Start / Stop camera -->
   <button onclick="startCamera()">Start Camera</button>
-
-  <!-- Capture gesture -->
-  <button onclick="capture()">Capture Gesture</button>
+  <button onclick="stopCamera()">Stop Camera</button>
 
   <br><br>
 
   <!-- Camera preview -->
-  <video id="video" width="400" height="300" autoplay></video>
+  <video id="video" width="400" height="300" autoplay playsinline></video>
 
   <br><br>
 
   <!-- Result text -->
-  <p id="result">Detected Text will appear here</p>
+  <h2 id="result">Waiting for gesture...</h2>
 
+  <!-- JS -->
   <script src="script.js"></script>
+
 </body>
 </html>

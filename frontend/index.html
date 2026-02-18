@@ -6,23 +6,42 @@
 </head>
 <body>
 
-  <h1>Gesture to Speech</h1>
+  <div class="container">
 
-  <!-- Start / Stop camera -->
-  <button onclick="startCamera()">Start Camera</button>
-  <button onclick="stopCamera()">Stop Camera</button>
+    <h1>Gesture to Speech System</h1>
 
-  <br><br>
+    <!-- Camera Controls -->
+    <div class="controls">
+      <button class="start-btn" onclick="startCamera()">Start Camera</button>
+      <button class="stop-btn" onclick="stopCamera()">Stop Camera</button>
+    </div>
 
-  <!-- Camera preview -->
-  <video id="video" width="400" height="300" autoplay playsinline></video>
+    <!-- Camera Section -->
+    <div class="camera-card">
+      <video id="video" autoplay playsinline></video>
+      <div class="status-indicator" id="status">Camera Off</div>
+    </div>
 
-  <br><br>
+    <!-- Detection Result -->
+    <div class="result-card">
+      <h2>Detected Word</h2>
+      <p id="result">Waiting...</p>
+      <p id="confidence"></p>
+    </div>
 
-  <!-- Result text -->
-  <h2 id="result">Waiting for gesture...</h2>
+    <!-- Sentence Builder -->
+    <div class="sentence-card">
+      <h2>Sentence Builder</h2>
+      <p id="sentence"></p>
 
-  <!-- JS -->
+      <div class="sentence-buttons">
+        <button onclick="speakSentence()">Speak Sentence</button>
+        <button onclick="clearSentence()">Clear Sentence</button>
+      </div>
+    </div>
+
+  </div>
+
   <script src="script.js"></script>
 
 </body>

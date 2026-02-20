@@ -6,7 +6,6 @@ let stream = null;
 let detectionInterval = null;
 let lastDetected = null;
 let displayTimeout = null;
-let sentence = "";
 
 // ======================
 // START CAMERA
@@ -20,6 +19,9 @@ function startCamera() {
 
             stream = mediaStream;
             video.srcObject = stream;
+
+            document.getElementById("status").innerText = "Camera Active";
+            document.getElementById("status").style.background = "green";
 
             video.onloadedmetadata = () => {
                 video.play();
@@ -58,34 +60,33 @@ function capture() {
 
         if (!data.text) return;
 
-        // Only update if new detection
+        const resultElement = document.getElementById("result");
+
         if (data.text !== lastDetected) {
 
             lastDetected = data.text;
 
-            const resultElement = document.getElementById("result");
-            resultElement.classList.add("fade");
+            // Stop previous timeout
+            clearTimeout(displayTimeout);
 
+            // Show gesture
             resultElement.innerText = data.text;
+            resultElement.classList.add("show");
 
-            // Show confidence if backend sends it
+            // Show confidence if provided
             if (data.confidence) {
                 document.getElementById("confidence").innerText =
                     "Confidence: " + (data.confidence * 100).toFixed(2) + "%";
             }
 
-            // Add to sentence
-            sentence += data.text + " ";
-            document.getElementById("sentence").innerText = sentence;
-
             // Speak detected word
             speakText(data.text);
 
-            // Pause detection for 3 seconds
-            clearInterval(detectionInterval);
-
+            // Hide after 3 seconds if no new gesture
             displayTimeout = setTimeout(() => {
-                detectionInterval = setInterval(capture, 1000);
+                resultElement.classList.remove("show");
+                resultElement.innerText = "";
+                document.getElementById("confidence").innerText = "";
                 lastDetected = null;
             }, 3000);
         }
@@ -100,22 +101,20 @@ function capture() {
 // TEXT TO SPEECH
 // ======================
 function speakText(text) {
+
+    const wave = document.getElementById("wave");
+    wave.style.visibility = "visible";
+
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "en-US";
     speech.rate = 0.9;
+
+    speech.onend = () => {
+        wave.style.visibility = "hidden";
+    };
+
+    window.speechSynthesis.cancel();
     window.speechSynthesis.speak(speech);
-}
-
-// Speak full sentence
-function speakSentence() {
-    if (!sentence) return;
-    speakText(sentence);
-}
-
-// Clear sentence
-function clearSentence() {
-    sentence = "";
-    document.getElementById("sentence").innerText = "";
 }
 
 // ======================
@@ -133,5 +132,15 @@ function stopCamera() {
         stream = null;
     }
 
+    clearTimeout(displayTimeout);
+
+    document.getElementById("status").innerText = "Camera Off";
+    document.getElementById("status").style.background = "red";
+
     video.srcObject = null;
+
+    // Clear display
+    document.getElementById("result").innerText = "";
+    document.getElementById("confidence").innerText = "";
+    lastDetected = null;
 }

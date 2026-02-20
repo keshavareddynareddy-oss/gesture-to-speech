@@ -6,41 +6,36 @@
 </head>
 <body>
 
-  <div class="container">
+  <div class="app">
 
-    <h1>Gesture to Speech System</h1>
+    <h1 class="title">Gesture to Speech System</h1>
 
     <!-- Camera Controls -->
-    <div class="controls">
-      <button class="start-btn" onclick="startCamera()">Start Camera</button>
-      <button class="stop-btn" onclick="stopCamera()">Stop Camera</button>
+    <div class="control-panel">
+      <button class="btn start" onclick="startCamera()">Start Camera</button>
+      <button class="btn stop" onclick="stopCamera()">Stop Camera</button>
     </div>
 
     <!-- Camera Section -->
-    <div class="camera-card">
+    <div class="camera-wrapper">
       <video id="video" autoplay playsinline></video>
-      <div class="status-indicator" id="status">Camera Off</div>
+      <div class="camera-status" id="status">Camera Off</div>
     </div>
 
     <!-- Detection Result -->
-    <div class="result-card">
+    <div class="result-container">
       <h2>Detected Word</h2>
-      <p id="result">Waiting...</p>
-      <p id="confidence"></p>
-    </div>
-
-    <!-- Sentence Builder -->
-    <div class="sentence-card">
-      <h2>Sentence Builder</h2>
-      <p id="sentence"></p>
-
-      <div class="sentence-buttons">
-        <button onclick="speakSentence()">Speak Sentence</button>
-        <button onclick="clearSentence()">Clear Sentence</button>
+      <div class="result-display">
+        <p id="result" class="gesture-text"></p>
+        <p id="confidence"></p>
       </div>
     </div>
+    <div class="wave-container" id="wave">
+  <span></span><span></span><span></span><span></span><span></span>
+</div>
 
   </div>
+  <canvas id="particles"></canvas>
 
   <script src="script.js"></script>
 

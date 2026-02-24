@@ -1,0 +1,15 @@
+# Ignore dataset
+backend/dataset/
+
+# Ignore trained models
+backend/gesture_model.pkl
+backend/scaler.pkl
+
+# Ignore database
+backend/gestures.db
+
+# Ignore Python cache
+backend/__pycache__/
+
+# Ignore node modules if added later
+node_modules/

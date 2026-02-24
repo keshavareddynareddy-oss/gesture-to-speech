@@ -6,14 +6,31 @@ import kagglehub
 path = kagglehub.dataset_download("grassknoted/asl-alphabet")
 print("Downloaded to:", path)
 
-src = os.path.join(path, "asl_alphabet_train", "asl_alphabet_train")
-dst = r"C:\gesture-to-speech\backend\dataset\asl_alphabet_train"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATASET_DIR = os.path.join(BASE_DIR, "dataset")
+dst = os.path.join(DATASET_DIR, "asl_alphabet_train")
 
-os.makedirs(r"C:\gesture-to-speech\backend\dataset", exist_ok=True)
+# Try to locate dataset automatically
+possible_src = [
+    os.path.join(path, "asl_alphabet_train", "asl_alphabet_train"),
+    os.path.join(path, "asl_alphabet_train"),
+]
+
+src = None
+for p in possible_src:
+    if os.path.exists(p):
+        src = p
+        break
+
+if not src:
+    print("Could not locate dataset structure automatically.")
+    exit()
+
+os.makedirs(DATASET_DIR, exist_ok=True)
 
 if not os.path.exists(dst):
     shutil.copytree(src, dst)
-    print("Dataset copied!")
+    print("Dataset copied successfully!")
 else:
     print("Dataset already exists.")
 

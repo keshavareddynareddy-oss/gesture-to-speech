@@ -5,13 +5,12 @@ from datetime import datetime
 
 Base = declarative_base()
 
-# 🔒 ABSOLUTE path to backend/gestures.db
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "gestures.db")
 
 engine = create_engine(
     f"sqlite:///{DB_PATH}",
-    echo=True,
+    echo=False,
     connect_args={"check_same_thread": False}
 )
 
@@ -21,18 +20,23 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
+
 class Gesture(Base):
     __tablename__ = "gestures"
+
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    output_text = Column(String)
+    name = Column(String(50), unique=True, index=True, nullable=False)
+    output_text = Column(String(100), nullable=False)
+
 
 class History(Base):
     __tablename__ = "history"
-    id = Column(Integer, primary_key=True, index=True)
-    gesture = Column(String)
-    text = Column(String)
-    timestamp = Column(DateTime, default=datetime.utcnow)
 
-# Create tables in the CORRECT database
+    id = Column(Integer, primary_key=True, index=True)
+    gesture = Column(String(50), nullable=False)
+    text = Column(String(500), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+
+
+# Create tables
 Base.metadata.create_all(bind=engine)

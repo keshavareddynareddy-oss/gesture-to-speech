@@ -1,96 +1,135 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import base64
-import pyttsx3
-import threading
 import time
+import pyttsx3
+
 from database import SessionLocal, Gesture, History
 from model import predict_gesture
 
 app = Flask(__name__)
+CORS(app)
 
-# CORS
-CORS(app, resources={r"/*": {"origins": "*"}})
+# ==========================
+# Stability + Sentence State
+# ==========================
+last_prediction = None
+stable_count = 0
+last_confirmed_gesture = None
+last_confirmed_time = 0
 
-# Text-to-Speech Engine
+# 🔥 Tuned for real webcam stability
+STABLE_THRESHOLD = 2
+COOLDOWN_SECONDS = 1.0
+
+# Sentence memory
+current_sentence = ""
+
+# Text to Speech Engine
 engine = pyttsx3.init()
-
-# Prevent overlapping speech
-speech_lock = threading.Lock()
-last_spoken = ""
-
-# Gesture smoothing variables
-last_known_gesture = None
-last_seen_time = time.time()
-WAIT_SECONDS = 0   # instant response
-
-def speak(text):
-    global last_spoken, last_seen_time
-
-    # Prevent audio spam but allow repeat after 1 second
-    if text == last_spoken and time.time() - last_seen_time < 1:
-        return
-
-    def run_speech():
-        with speech_lock:
-            try:
-                engine.stop()
-                engine.say(text)
-                engine.runAndWait()
-            except RuntimeError:
-                pass
-
-    threading.Thread(target=run_speech).start()
-
-    last_spoken = text
-    last_seen_time = time.time()
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    global last_known_gesture, last_seen_time
+    global last_prediction, stable_count
+    global last_confirmed_gesture, last_confirmed_time
+    global current_sentence
 
     data = request.json.get("image")
     if not data:
         return jsonify({"error": "No image provided"}), 400
 
-    image_bytes = base64.b64decode(data.split(",")[1])
+    try:
+        image_bytes = base64.b64decode(data.split(",")[1])
+    except Exception:
+        return jsonify({"error": "Invalid image data"}), 400
 
-    # MODEL PREDICTION
     gesture_name = str(predict_gesture(image_bytes)).strip()
 
-    # SMOOTHING LOGIC (instant)
-    current_time = time.time()
+    # ==========================
+    # Unknown Reset
+    # ==========================
+    if gesture_name == "Unknown":
+        stable_count = max(0, stable_count - 1)
+        print("Gesture: Unknown | Stable:", stable_count)
+        return jsonify({
+            "gesture": "Unknown",
+            "confirmed": False,
+            "sentence": current_sentence
+        })
 
-    if gesture_name != "Unknown":
-        last_known_gesture = gesture_name
-        last_seen_time = current_time
+    # ==========================
+    # Smooth Stability Logic
+    # ==========================
+    if gesture_name == last_prediction:
+        stable_count += 1
     else:
-        if last_known_gesture and (current_time - last_seen_time < WAIT_SECONDS):
-            gesture_name = last_known_gesture
+        # Instead of full reset, decrease slowly
+        stable_count = max(1, stable_count - 1)
 
-    # DATABASE LOOKUP
-    db = SessionLocal()
-    gesture = db.query(Gesture).filter_by(name=gesture_name).first()
+    last_prediction = gesture_name
 
-    if gesture:
-        text = gesture.output_text
-    else:
-        text = "Unknown gesture"
+    confirmed = False
 
-    # SAVE HISTORY
-    history = History(gesture=gesture_name, text=text)
-    db.add(history)
-    db.commit()
-    db.close()
+    # ==========================
+    # Confirmation Logic
+    # ==========================
+    if stable_count >= STABLE_THRESHOLD:
+        current_time = time.time()
 
-    # TEXT TO SPEECH
-    speak(text)
+        if not (
+            gesture_name == last_confirmed_gesture and
+            current_time - last_confirmed_time < COOLDOWN_SECONDS
+        ):
+            confirmed = True
+            last_confirmed_gesture = gesture_name
+            last_confirmed_time = current_time
+
+            if gesture_name == "Space":
+                current_sentence += " "
+            elif gesture_name == "Delete":
+                current_sentence = current_sentence[:-1]
+            elif gesture_name == "Clear":
+                current_sentence = ""
+            elif gesture_name == "Speak":
+                engine.say(current_sentence)
+                engine.runAndWait()
+            else:
+                current_sentence += gesture_name
+
+            # Save to history
+            db = SessionLocal()
+            try:
+                history = History(gesture=gesture_name, text=current_sentence)
+                db.add(history)
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                print("DB Error:", e)
+            finally:
+                db.close()
+
+    # 🔥 Debug print (VERY IMPORTANT)
+    print(
+        "Gesture:", gesture_name,
+        "| Stable:", stable_count,
+        "| Confirmed:", confirmed,
+        "| Sentence:", current_sentence
+    )
 
     return jsonify({
         "gesture": gesture_name,
-        "text": text
+        "confirmed": confirmed,
+        "sentence": current_sentence
     })
+
+
+@app.route("/reset", methods=["POST"])
+def reset():
+    global current_sentence
+    current_sentence = ""
+    print("Sentence Reset")
+    return jsonify({"message": "Sentence cleared"})
 
 
 if __name__ == "__main__":

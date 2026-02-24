@@ -1,43 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Gesture to Speech</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Gesture to Speech & Sentence Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        video {
+            width: 320px;
+            height: 240px;
+            border-radius: 10px;
+            border: 3px solid #333;
+            margin-top: 10px;
+        }
+
+        #result {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 40px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+            min-width: 250px;
+        }
+
+        #confidence {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #444;
+        }
+
+        button {
+            margin: 8px;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+    </style>
 </head>
+
 <body>
 
-  <div class="app">
+    <h1>Gesture to Speech & Sentence Generator</h1>
 
-    <h1 class="title">Gesture to Speech System</h1>
+    <h3 id="status">Camera Off</h3>
 
-    <!-- Camera Controls -->
-    <div class="control-panel">
-      <button class="btn start" onclick="startCamera()">Start Camera</button>
-      <button class="btn stop" onclick="stopCamera()">Stop Camera</button>
+    <video id="video" autoplay playsinline></video>
+
+    <div>
+        <button class="primary" onclick="startCamera()">Start Camera</button>
+        <button class="danger" onclick="stopCamera()">Stop Camera</button>
     </div>
 
-    <!-- Camera Section -->
-    <div class="camera-wrapper">
-      <video id="video" autoplay playsinline></video>
-      <div class="camera-status" id="status">Camera Off</div>
+    <h2 id="confidence">Detected: -</h2>
+
+    <h2>Generated Sentence:</h2>
+    <div id="result"></div>
+
+    <div>
+        <button class="danger" onclick="clearSentence()">Clear Sentence</button>
+        <button class="success" onclick="speakFullSentence()">Speak Sentence</button>
     </div>
 
-    <!-- Detection Result -->
-    <div class="result-container">
-      <h2>Detected Word</h2>
-      <div class="result-display">
-        <p id="result" class="gesture-text"></p>
-        <p id="confidence"></p>
-      </div>
-    </div>
-    <div class="wave-container" id="wave">
-  <span></span><span></span><span></span><span></span><span></span>
-</div>
-
-  </div>
-  <canvas id="particles"></canvas>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>
